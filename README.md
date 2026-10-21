@@ -4,7 +4,7 @@ Código del artículo *"El ENOS y la probabilidad de sequía estacional en Méxi
 muestra con SPEI y modelos interpretables"*, enviado al CISIMA 2026 (revista *Tecnologías Sostenibles y
 Aplicaciones Ambientales*).
 
-Autores: Yunué Garza-Pimentel, Marcos Ángel González-Olvera y Jaime Reynaldo Santos-Reyes.
+Autores: Yunué Garza-Pimentel, Jaime Reynaldo Santos-Reyes y Marcos Ángel González-Olvera.
 
 ## Qué hace
 
