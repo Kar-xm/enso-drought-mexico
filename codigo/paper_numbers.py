@@ -115,7 +115,9 @@ N['xgb_wet_range'] = [float(xw.min()), float(xw.max())]
 for s in ('dry', 'wet'):
     g = t[(t.season == s) & (t['index'] == 'SPEI6')]
     N[f'serial_{s}'] = dict(r1_index_med=float(g.r1_index.median()), r1_oni=float(g.r1_oni.iloc[0]),
-                            n_eff_med=float(g.n_eff.median()), sig_eff=float(g.sig_conc_eff.mean()))
+                            n_eff_med=float(g.n_eff.median()), sig_eff=float(g.sig_conc_eff.mean()),
+                            prod_med=float((g.r1_index * g.r1_oni).median()),
+                            prod_maxabs=float((g.r1_index * g.r1_oni).abs().max()))
 # RONI sensitivity
 if os.path.exists(f'{W}/explore_roni_corr.csv'):
     tr_ = pd.read_csv(f'{W}/explore_roni_corr.csv')
@@ -160,8 +162,13 @@ for ix in ('spei', 'speironi', 'speipm', 'spei79'):
         cv_ = pd.read_csv(f); cv_ = cv_[cv_.chosen]
         N[f'C_{ix}'] = {f'{a}_{b}': (None if pd.isna(c_) else float(c_)) for a, b, c_ in zip(cv_.season, cv_.model, cv_.C)}
 
-v3 = pd.read_csv(f'{W}/fig3_values.csv').set_index(['season', 'reg'])
-N['shap'] = {f'{s}|{rg_}|{c_}': float(v3.loc[(s, rg_), c_]) for s, rg_ in v3.index for c_ in v3.columns}
+v3 = pd.read_csv(f'{W}/fig3_values.csv')            # written by paper_figures.py (dry season, (d) and (e))
+N['shap'] = {f'{s}|{mo}|{rg_}|{c_}': [float(a), float(lo), float(hi)]
+             for s, mo, rg_, c_, a, lo, hi in zip(v3.season, v3.model, v3.reg, v3.comp, v3['mean'], v3.lo, v3.hi)}
+sw = pd.read_csv(f'{W}/model_spei_prob_shap_log.csv'); sw = sw[sw.season == 'wet']
+sw['reg'] = [reg(a, b) for a, b in zip(sw.lon, sw.lat)]
+sw['ENOS'] = (sw.shap_oni_lead + sw.shap_oni_conc.fillna(0)).abs(); sw['PERS'] = (sw.shap_pers6 + sw.shap_pers3).abs()
+N['shap_wet_max'] = float(sw.groupby(['model', 'reg'])[['ENOS', 'PERS']].mean().values.max())
 v4 = pd.read_csv(f'{W}/fig4_values.csv')
 N['blocks'] = {f'{a}|{b}|{c_}': float(f_) for a, b, c_, f_ in zip(v4['index'], v4.season, v4.start, v4.freq)}
 for ix in ('spei', 'spi', 'speit', 'speipm'):
@@ -173,5 +180,9 @@ if os.path.exists(f'{W}/pm_summary.json'):
     N['pm'] = json.load(open(f'{W}/pm_summary.json'))
 if os.path.exists(f'{W}/tc_summary.json'):
     N['tc'] = json.load(open(f'{W}/tc_summary.json'))
+if os.path.exists(f'{W}/xgb_base_score.json'):        # written by xgb_base_score.py
+    N['xgb_base'] = json.load(open(f'{W}/xgb_base_score.json'))
+if os.path.exists(f'{W}/extra_numbers.json'):          # written by paper_extra.py
+    N['x'] = json.load(open(f'{W}/extra_numbers.json'))
 json.dump(N, open(OUT, 'w'), indent=1, ensure_ascii=False, default=float)
 print('ok', len(N))
