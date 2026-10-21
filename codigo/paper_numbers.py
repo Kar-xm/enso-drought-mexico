@@ -131,9 +131,20 @@ if os.path.exists(f'{W}/explore_roni_corr.csv'):
                             diff_train=float((j.roni - j.oni)[(j.index.year >= 1951) & (j.index.year <= 2004)].mean()))
     Dr = pd.read_csv(f'{W}/model_speironi_dataset.csv')
     Dr['fase'] = np.where(Dr.oni_conc >= 0.5, 'nino', np.where(Dr.oni_conc <= -0.5, 'nina', 'neutro'))
+    # counterfactual with the RONI phases: training frequency of each phase x phase mix of the test seasons
+    for s_, g_ in Dr.groupby('season'):
+        g_ = g_.assign(y=g_.target <= -1)
+        tr_r, te_r = g_[g_.year <= 2004], g_[g_.year >= 2005]
+        N[f'roni_expected_{s_}'] = float((tr_r.groupby('fase').y.mean() *
+                                          te_r.drop_duplicates('year').fase.value_counts(normalize=True)).sum())
     N['roni_phases_test'] = {s: dict(nino=int((g.drop_duplicates('year').query('year >= 2005').fase == 'nino').sum()),
                                      nina=int((g.drop_duplicates('year').query('year >= 2005').fase == 'nina').sum()))
                              for s, g in Dr.groupby('season')}
+# Noroeste: ONI-SPEI-6 correlation (dry season) in the training and test periods, median over points
+q_ = D[(D.season == 'dry') & (D.lon <= -109)]
+N['no_r'] = {per: float(q_[q_.year.between(a, b)].groupby(['lon', 'lat'])
+                        .apply(lambda w: np.corrcoef(w.oni_conc, w.target)[0, 1], include_groups=False).median())
+             for per, (a, b) in {'train': (1951, 2004), 'test': (2005, 2024)}.items()}
 # calibration / discrimination (Murphy decomposition and AUC)
 for ix in ('spei', 'speironi', 'speipm', 'spei79', 'spi', 'speit'):
     f = f'{W}/model_{ix}_extra.csv'

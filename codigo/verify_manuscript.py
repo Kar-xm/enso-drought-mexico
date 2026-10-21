@@ -88,6 +88,17 @@ check('autocorrelación despreciable', abs(N['serial_dry']['r1_index_med']) < 0.
       and abs(N['serial_dry']['sig_eff'] - N['dry_SPEI6']['sig']) < 0.01)
 check('C de lluvias en el extremo de la rejilla', N['C_spei']['wet_LOG_lead'] == 0.01)
 check('RONI: correlación significativa en la mayoría', N['roni_dry']['sig'] > 0.8)
+# ---- third-review claims
+check('RONI: mezcla explica solo parte', N['enso_dry']['freq_tr'] < N['roni_expected_dry'] < N['enso_dry']['freq_te'] - 0.05)
+check('RONI: resolución similar y confiabilidad mejor', abs(N['extra_speironi']['dry|LOG_lead']['RES'] - E['dry|LOG_lead']['RES']) < 0.002
+      and N['extra_speironi']['dry|LOG_lead']['REL'] < E['dry|LOG_lead']['REL'])
+check('RONI: AUC menor y BSS mayor', N['extra_speironi']['dry|LOG_lead']['AUC'] < E['dry|LOG_lead']['AUC']
+      and N['boot_speironi']['dry|Nacional|LOG_lead'][0] > N['boot_spei']['dry|Nacional|LOG_lead'][0])
+check('Noroeste: correlación baja en la prueba', N['no_r']['test'] < N['no_r']['train'] - 0.1)
+check('lluvias (f) AUC excluye 0.5', E['wet|LOG_trend']['AUC_lo'] > 0.5)
+check('UNC ≈ o(1-o)', abs(E['dry|clim']['UNC'] - N['enso_dry']['freq_te'] * (1 - N['enso_dry']['freq_te'])) < 1e-6)
+check('BSS recalibrado ≈ RES/UNC (± 1.5 pp)', abs(E['dry|LOG_lead']['RES'] / E['dry|clim']['UNC'] - N['boot_spei']['dry|Nacional|LOG_lead'][0]) < 0.015)
+check('PM y SPEI-T con resultados distintos', N['boot_speipm']['dry|Nacional|LOG_lead'] != N['boot_speit']['dry|Nacional|LOG_lead'])
 # ---- independent recomputation of a sample of numbers
 P = pd.read_csv(f'{W}/model_spei_prob_pred.csv')
 for s in ('dry', 'wet'):
