@@ -50,6 +50,8 @@ python codigo/drought_prob.py model_spei_dataset.csv model_spei79 --train-start=
 python codigo/pm_summary.py .
 python codigo/tc_compare.py ERA5 tc_in .
 python codigo/paper_figures.py . figuras
+python codigo/xgb_base_score.py model_spei_dataset.csv model_spei xgb_base_score.json   # valor inicial de XGBoost (g)
+python codigo/paper_extra.py . ERA5 figuras        # diagnósticos de la 4.ª revisión (sin reajustar modelos)
 python codigo/paper_numbers.py . paper_numbers.json   # todas las cifras del manuscrito
 python codigo/verify_manuscript.py . manuscrito.docx  # comprobaciones del texto
 ```
